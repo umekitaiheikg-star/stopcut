@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>止切長さ計算</title>
+
+<style>
+body{
+    font-family:"メイリオ","Meiryo","Yu Gothic",sans-serif;
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+    background:#ffffff;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+h2{
+    text-align:center;
+    color:#ffffff;
+    background:#0077cc;
+    padding:15px;
+    border-radius:10px;
+    margin-top:0;
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    margin:12px 0;
+}
+
+label{
+    width:120px;
+    font-weight:bold;
+    color:#003366;
+}
+
+input{
+    flex:1;
+    padding:12px;
+    font-size:18px;
+    border:2px solid #3399ff;
+    border-radius:8px;
+    background:#f8fbff;
+    transition:0.2s;
+    box-sizing:border-box;
+}
+
+input:focus{
+    outline:none;
+    border-color:#ff9800;
+    background:#fff8e1;
+    box-shadow:0 0 8px rgba(255,152,0,.4);
+}
+
+.result{
+    background:linear-gradient(135deg,#fff176,#ffd54f);
+    border:2px solid #f9a825;
+    border-radius:10px;
+    padding:15px;
+    margin-top:20px;
+}
+
+.result div{
+    font-size:22px;
+    font-weight:bold;
+    color:#d84315;
+    padding:8px 0;
+}
+
+#error{
+    color:#d50000;
+    font-weight:bold;
+    margin-top:15px;
+    background:#ffebee;
+    border-radius:8px;
+    padding:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>止切長さ計算</h2>
+
+<div class="row">
+<label>切巾</label>
+<input id="width">
+</div>
+
+<div class="row">
+<label>穴位置（先端）</label>
+<input id="frontHole">
+</div>
+
+<div class="row">
+<label>穴位置（尾端）</label>
+<input id="rearHole">
+</div>
+
+<div class="row">
+<label>ゲージ</label>
+<input id="gauge">
+</div>
+
+<div class="row">
+<label>逆ゲージ</label>
+<input id="revGauge">
+</div>
+
+<div class="row">
+<label>X</label>
+<input id="x">
+</div>
+
+<div class="row">
+<label>Y</label>
+<input id="y">
+</div>
+
+<div class="row">
+<label>角度(°)</label>
+<input id="angle">
+</div>
+
+<div id="error"></div>
+
+<div class="result">
+
+<div>先端 a寸法：<span id="fa"></span></div>
+<div>先端 b寸法：<span id="fb"></span></div>
+
+<hr>
+
+<div>尾端 a寸法：<span id="ra"></span></div>
+<div>尾端 b寸法：<span id="rb"></span></div>
+
+</div>
+
+</div>
+
+<script>
+
+document.querySelectorAll("input").forEach(i=>{
+    i.addEventListener("input",calc);
+});
+
+function num(v){
+    if(v==="") return "";
+    return Number(v);
+}
+
+function roundExcel(v){
+    return Math.round(v);
+}
+
+function calc(){
+
+    document.getElementById("error").textContent="";
+
+    const ids=["width","frontHole","rearHole","gauge","revGauge","x","y","angle"];
+
+    for(const id of ids){
+
+        const v=document.getElementById(id).value.trim();
+
+        if(v!=="" && isNaN(v)){
+            document.getElementById("error").textContent="数値を入力してください。";
+            return;
+        }
+
+    }
+
+    const W=num(width.value);
+    const FH=num(frontHole.value);
+    const RH=num(rearHole.value);
+    const G=num(gauge.value);
+    const RG=num(revGauge.value);
+    const X=num(x.value);
+    const Y=num(y.value);
+
+    let ang;
+
+    if(angle.value!==""){
+        ang=num(angle.value);
+    }else if(X!=="" && Y!=="" && X!==0){
+        ang=Math.atan(Y/X)*180/Math.PI;
+    }else{
+        ang="";
+    }
+
+    if(W===""||FH===""||G===""){
+        fa.textContent="";
+        fb.textContent="";
+        ra.textContent="";
+        rb.textContent="";
+        return;
+    }
+
+    if(ang===""){
+        fa.textContent="";
+        fb.textContent="";
+        return;
+    }
+
+    const r=ang*Math.PI/180;
+
+    // Excelの COS()^-1 = 1/COS()
+    const sec=1/Math.cos(r);
+
+    const tan=Math.tan(r);
+
+    const frontA=roundExcel(((G-sec*W)/tan)+FH)+1;
+
+    const frontB=roundExcel((((G-sec*W)/tan)+FH)*tan)+1;
+
+    fa.textContent=frontA;
+    fb.textContent=frontB;
+
+    if(RH!=="" && RG!==""){
+
+        const rearA=roundExcel(((RG-sec*W)/tan)+RH)+1;
+
+        const rearB=roundExcel((((RG-sec*W)/tan)+RH)*tan)+1;
+
+        ra.textContent=rearA;
+        rb.textContent=rearB;
+
+    }else{
+
+        ra.textContent="";
+        rb.textContent="";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
