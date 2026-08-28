@@ -136,6 +136,43 @@ input:focus, select:focus{
     }
 }
 
+
+.input-group{
+    flex:1;
+    min-width:0;
+}
+.input-group input{
+    width:100%;
+}
+.quick-options{
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+}
+.quick-options button{
+    flex:1;
+    min-height:40px;
+    padding:6px 10px;
+    font-size:16px;
+    border:2px solid #3399ff;
+    border-radius:8px;
+    background:#f8fbff;
+    color:#003366;
+    cursor:pointer;
+}
+.quick-options button:active,
+.quick-options button:hover{
+    background:#fff8e1;
+    border-color:#ff9800;
+}
+
+@media (max-width:480px){
+    .quick-options button{
+        min-height:44px;
+        font-size:17px;
+    }
+}
+
 </style>
 </head>
 
@@ -147,28 +184,34 @@ input:focus, select:focus{
 
 <div class="row">
 <label>切巾</label>
-<input id="width" list="widthOptions">
-<datalist id="widthOptions">
-<option value="25">
-<option value="23">
-<option value="20">
-</datalist>
+<div class="input-group">
+<input id="width" inputmode="decimal">
+<div class="quick-options" data-target="width">
+<button type="button">25</button>
+<button type="button">23</button>
+<button type="button">20</button>
+</div>
+</div>
 </div>
 
 <div class="row">
 <label>穴（先端）</label>
-<input id="frontHole" list="frontHoleOptions">
-<datalist id="frontHoleOptions">
-<option value="25">
-</datalist>
+<div class="input-group">
+<input id="frontHole" inputmode="decimal">
+<div class="quick-options" data-target="frontHole">
+<button type="button">25</button>
+</div>
+</div>
 </div>
 
 <div class="row">
 <label>穴（尾端）</label>
-<input id="rearHole" list="rearHoleOptions">
-<datalist id="rearHoleOptions">
-<option value="25">
-</datalist>
+<div class="input-group">
+<input id="rearHole" inputmode="decimal">
+<div class="quick-options" data-target="rearHole">
+<button type="button">25</button>
+</div>
+</div>
 </div>
 
 <div class="row">
@@ -228,17 +271,30 @@ input:focus, select:focus{
 
 <script>
 
-document.querySelectorAll("input, select").forEach(i=>{
+const formFields=[...document.querySelectorAll("input, select")];
+
+formFields.forEach(i=>{
     i.addEventListener("input",calc);
     i.addEventListener("change",calc);
     i.addEventListener("keydown",e=>{
         if(e.key==="Enter"){
             e.preventDefault();
-            const fields=[...document.querySelectorAll("input, select")];
-            const index=fields.indexOf(e.currentTarget);
-            const next=fields[index+1];
-            if(next) next.focus();
+            const index=formFields.indexOf(e.currentTarget);
+            const next=formFields[index+1];
+            if(next){
+                next.focus();
+                if(next.tagName==="INPUT") next.select();
+            }
         }
+    });
+});
+
+document.querySelectorAll(".quick-options button").forEach(button=>{
+    button.addEventListener("click",()=>{
+        const target=document.getElementById(button.parentElement.dataset.target);
+        target.value=button.textContent.trim();
+        calc();
+        target.focus();
     });
 });
 
