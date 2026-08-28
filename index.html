@@ -43,7 +43,7 @@ label{
     color:#003366;
 }
 
-input{
+input, select{
     flex:1;
     padding:12px;
     font-size:18px;
@@ -54,7 +54,7 @@ input{
     box-sizing:border-box;
 }
 
-input:focus{
+input:focus, select:focus{
     outline:none;
     border-color:#ff9800;
     background:#fff8e1;
@@ -95,27 +95,57 @@ input:focus{
 
 <div class="row">
 <label>切巾</label>
-<input id="width">
+<input id="width" list="widthOptions">
+<datalist id="widthOptions">
+<option value="25">
+<option value="23">
+<option value="20">
+</datalist>
 </div>
 
 <div class="row">
 <label>穴（先端）</label>
-<input id="frontHole">
+<input id="frontHole" list="frontHoleOptions">
+<datalist id="frontHoleOptions">
+<option value="25">
+</datalist>
 </div>
 
 <div class="row">
 <label>穴（尾端）</label>
-<input id="rearHole">
+<input id="rearHole" list="rearHoleOptions">
+<datalist id="rearHoleOptions">
+<option value="25">
+</datalist>
 </div>
 
 <div class="row">
-<label>ゲージ</label>
+<label>アングル</label>
+<select id="angleType">
+<option value=""></option>
+<option value="75">L75</option>
+<option value="65">L65</option>
+<option value="50">L50</option>
+</select>
+</div>
+
+<div class="row">
+<label>ゲージ（背）</label>
 <input id="gauge">
 </div>
 
 <div class="row">
-<label>逆ゲージ</label>
+<label>ゲージ（刃）</label>
 <input id="revGauge">
+</div>
+
+<div class="row">
+<label>角度</label>
+<input id="angle" list="angleOptions">
+<datalist id="angleOptions">
+<option value="30">
+<option value="45">
+</datalist>
 </div>
 
 <div class="row">
@@ -126,11 +156,6 @@ input:focus{
 <div class="row">
 <label>Y</label>
 <input id="y">
-</div>
-
-<div class="row">
-<label>角度</label>
-<input id="angle">
 </div>
 
 <div id="error"></div>
@@ -151,8 +176,18 @@ input:focus{
 
 <script>
 
-document.querySelectorAll("input").forEach(i=>{
+document.querySelectorAll("input, select").forEach(i=>{
     i.addEventListener("input",calc);
+    i.addEventListener("change",calc);
+    i.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){
+            e.preventDefault();
+            const fields=[...document.querySelectorAll("input, select")];
+            const index=fields.indexOf(e.currentTarget);
+            const next=fields[index+1];
+            if(next) next.focus();
+        }
+    });
 });
 
 function num(v){
@@ -167,6 +202,7 @@ function roundExcel(v){
 function calc(){
 
     document.getElementById("error").textContent="";
+    const angleTypeEl=document.getElementById("angleType");
 
     const ids=["width","frontHole","rearHole","gauge","revGauge","x","y","angle"];
 
@@ -184,10 +220,24 @@ function calc(){
     const W=num(width.value);
     const FH=num(frontHole.value);
     const RH=num(rearHole.value);
-    const G=num(gauge.value);
-    const RG=num(revGauge.value);
     const X=num(x.value);
     const Y=num(y.value);
+    const angleType=angleTypeEl.value;
+
+    // 選択したアングルに応じてゲージを自動設定
+    const gaugeMap={
+        "75":{back:40, blade:35},
+        "65":{back:35, blade:30},
+        "50":{back:27, blade:23}
+    };
+
+    if(gaugeMap[angleType]){
+        gauge.value=gaugeMap[angleType].back;
+        revGauge.value=gaugeMap[angleType].blade;
+    }
+
+    const G=num(gauge.value);
+    const RG=num(revGauge.value);
 
     let ang;
 
